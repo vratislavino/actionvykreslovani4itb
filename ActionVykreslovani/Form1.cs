@@ -16,6 +16,7 @@ namespace ActionVykreslovani
 
         List<Group> drawnGroups = new List<Group>();
         Group selectedGroup = null;
+        private Operation operation = Operation.None;
 
         public Form1() {
             InitializeComponent();
@@ -52,8 +53,9 @@ namespace ActionVykreslovani
         private void GroupClicked(GroupView obj) {
             Group g = new Group(obj.Group);
             drawnGroups.Add(g);
-            g.position = new Point(200, 0);
-            g.size = new Size(100, 100);
+            g.size = new Size(200, 200);
+            g.position = new Point(canvas1.Width / 2 - g.size.Width/2, canvas1.Height / 2 - g.size.Height/2);
+            
             canvas1.Refresh();
         }
 
@@ -77,21 +79,12 @@ namespace ActionVykreslovani
                     selectedGroup.Selected = false;
             }
 
-            /*
-            if (selectedGroup != null) {
-                if (tempSelected != selectedGroup) {
-                    selectedGroup.Selected = false;
-                    if (tempSelected != null) {
-                        selectedGroup = tempSelected;
-                        selectedGroup.Selected = true;
-                    }
-                }
-            } else {
-                if (tempSelected != null) {
-                    selectedGroup = tempSelected;
-                    selectedGroup.Selected = true;
-                }
-            }*/
+            if(selectedGroup != null && operation != Operation.None) {
+                if (operation == Operation.Move)
+                    selectedGroup.Move(e.Location);
+                if (operation == Operation.Resize)
+                    selectedGroup.Resize(e.Location);
+            }
 
             canvas1.Refresh();
         }
@@ -99,5 +92,20 @@ namespace ActionVykreslovani
         private void canvas1_Paint(object sender, PaintEventArgs e) {
             drawnGroups.ForEach(x => x.Draw(e.Graphics));
         }
+
+        private void canvas1_MouseDown(object sender, MouseEventArgs e) {
+            if(selectedGroup != null) {
+                operation = selectedGroup.GetAction(e.Location);
+            }
+        }
+
+        private void canvas1_MouseUp(object sender, MouseEventArgs e) {
+            operation = Operation.None;
+        }
+    }
+
+    public enum Operation
+    {
+        None, Move, Resize
     }
 }
