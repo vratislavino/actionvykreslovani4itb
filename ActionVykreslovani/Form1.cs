@@ -20,6 +20,7 @@ namespace ActionVykreslovani
 
         public Form1() {
             InitializeComponent();
+            // comment me :)
         }
 
         private void AddButton_Click(object sender, EventArgs e) {
