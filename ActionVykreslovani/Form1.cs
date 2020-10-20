@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace ActionVykreslovani
 {
@@ -55,8 +57,8 @@ namespace ActionVykreslovani
             Group g = new Group(obj.Group);
             drawnGroups.Add(g);
             g.size = new Size(200, 200);
-            g.position = new Point(canvas1.Width / 2 - g.size.Width/2, canvas1.Height / 2 - g.size.Height/2);
-            
+            g.position = new Point(canvas1.Width / 2 - g.size.Width / 2, canvas1.Height / 2 - g.size.Height / 2);
+
             canvas1.Refresh();
         }
 
@@ -70,7 +72,7 @@ namespace ActionVykreslovani
                 }
             }
 
-            if(tempSelected != null) {
+            if (tempSelected != null) {
                 if (selectedGroup != null)
                     selectedGroup.Selected = false;
                 selectedGroup = tempSelected;
@@ -80,7 +82,7 @@ namespace ActionVykreslovani
                     selectedGroup.Selected = false;
             }
 
-            if(selectedGroup != null && operation != Operation.None) {
+            if (selectedGroup != null && operation != Operation.None) {
                 if (operation == Operation.Move)
                     selectedGroup.Move(e.Location);
                 if (operation == Operation.Resize)
@@ -95,13 +97,67 @@ namespace ActionVykreslovani
         }
 
         private void canvas1_MouseDown(object sender, MouseEventArgs e) {
-            if(selectedGroup != null) {
+            if (selectedGroup != null) {
                 operation = selectedGroup.GetAction(e.Location);
             }
         }
 
         private void canvas1_MouseUp(object sender, MouseEventArgs e) {
             operation = Operation.None;
+        }
+
+        private void LoadGroups() {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "JSON FILES | *.json";
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK) {
+                LoadGroupsAtPath(ofd.FileName);
+            }
+        }
+
+        private void LoadGroupsAtPath(string path) {
+            string s = File.ReadAllText(path);
+
+            List<Group> loaded = JsonConvert.DeserializeObject<List<Group>>(s);
+
+            foreach (Group group in loaded) {
+                for (int i = 0; i < group.shapes.Count; i++) {
+                    group.shapes[i] = Shape.CreateShape(group.shapes[i], group.shapes[i].className);
+                }
+            }
+
+            groups = loaded;
+            UpdateGroups();
+        }
+
+        private void SaveGroups() {
+            string output = JsonConvert.SerializeObject(groups);
+
+            SaveFileDialog sfd = new SaveFileDialog();
+
+            sfd.AddExtension = true;
+            sfd.DefaultExt = ".json";
+            sfd.Filter = "JSON FILES | *.json";
+            DialogResult dr = sfd.ShowDialog();
+            if (dr == DialogResult.OK) {
+                string filename = sfd.FileName;
+                FileStream fs = File.Create(filename);
+                byte[] bytes = Encoding.ASCII.GetBytes(output);
+                fs.Write(bytes, 0, bytes.Length);
+                fs.Close();
+            }
+        }
+
+        private void uložitToolStripMenuItem_Click(object sender, EventArgs e) {
+            SaveGroups();
+        }
+
+        private void načístToolStripMenuItem_Click(object sender, EventArgs e) {
+            LoadGroups();
+        }
+
+        private void Form1_Load(object sender, EventArgs e) {
+            LoadGroupsAtPath(@"C:\Users\vrati\Documents\4itb_groups.json");
         }
     }
 

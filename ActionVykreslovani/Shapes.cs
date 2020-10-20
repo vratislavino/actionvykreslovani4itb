@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ActionVykreslovani
 {
     [Serializable]
-    public abstract class Shape
+    public class Shape
     {
         protected Pen outlinePen = new Pen(Color.Black,4) 
         { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
@@ -17,25 +17,30 @@ namespace ActionVykreslovani
         public Point end;
         public bool filled;
 
+        public string className;
+
         public const int size = 400;
 
         protected string Size {
             get { return "[" + (end.X - start.X) + ":" + (end.Y - start.Y) + "]"; }
         }
 
-        public abstract void Draw(Graphics g);
+        public virtual void Draw(Graphics g) { }
 
         public virtual void Draw(Graphics g, Point groupPos, Size groupSize) {
 
         }
 
-        public abstract void Visualize(Graphics g);
+        public virtual void Visualize(Graphics g) { }
 
         public static Shape CreateShape(string shp) {
             //return new Rectangle();
             shp = CorrectType(shp);
+            
             Shape s = (Shape) Activator.CreateInstance(
                 Type.GetType("ActionVykreslovani." + shp));
+
+            s.className = shp;
             return s;
         }
 
@@ -70,22 +75,23 @@ namespace ActionVykreslovani
         }
 
         public override void Draw(Graphics g, Point groupPos, Size groupSize) {
-            float ratio = (float) groupSize.Width / size;
+            float ratioX = (float) groupSize.Width / size;
+            float ratioY = (float) groupSize.Height / size;
 
             if (filled) {
                 g.FillRectangle(new SolidBrush(color),
-                    start.X * ratio + groupPos.X,
-                    start.Y * ratio + groupPos.Y,
-                    (end.X - start.X) * ratio,
-                    (end.Y - start.Y) * ratio
+                    start.X * ratioX + groupPos.X,
+                    start.Y * ratioY + groupPos.Y,
+                    (end.X - start.X) * ratioX,
+                    (end.Y - start.Y) * ratioY
                     );
 
             } else {
                 g.DrawRectangle(new Pen(color, 4),
-                    start.X * ratio + groupPos.X,
-                    start.Y * ratio + groupPos.Y,
-                    (end.X - start.X) * ratio,
-                    (end.Y - start.Y) * ratio
+                    start.X * ratioX + groupPos.X,
+                    start.Y * ratioY + groupPos.Y,
+                    (end.X - start.X) * ratioX,
+                    (end.Y - start.Y) * ratioY
                     );
             }
         }
@@ -105,22 +111,23 @@ namespace ActionVykreslovani
 
         public override void Draw(Graphics g, Point groupPos, Size groupSize) {
 
-            float ratio = (float) groupSize.Width / size;
+            float ratioX = (float) groupSize.Width / size;
+            float ratioY = (float) groupSize.Height / size;
 
             if (filled) {
                 g.FillEllipse(new SolidBrush(color),
-                    start.X * ratio + groupPos.X,
-                    start.Y * ratio + groupPos.Y,
-                    (end.X - start.X) * ratio,
-                    (end.Y - start.Y) * ratio
+                    start.X * ratioX + groupPos.X,
+                    start.Y * ratioY + groupPos.Y,
+                    (end.X - start.X) * ratioX,
+                    (end.Y - start.Y) * ratioY
                     );
 
             } else {
                 g.DrawEllipse(new Pen(color, 4),
-                    start.X * ratio + groupPos.X,
-                    start.Y * ratio + groupPos.Y,
-                    (end.X - start.X) * ratio,
-                    (end.Y - start.Y) * ratio
+                    start.X * ratioX + groupPos.X,
+                    start.Y * ratioY + groupPos.Y,
+                    (end.X - start.X) * ratioX,
+                    (end.Y - start.Y) * ratioY
                     );
             }
         }
